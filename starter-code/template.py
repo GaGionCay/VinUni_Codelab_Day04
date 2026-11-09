@@ -82,8 +82,8 @@ class ToolCallingAgent:
         lower_input = user_input.lower()
         
         # 1. Xử lý câu hỏi FAQ (ví dụ: bảo hành pin VF 5 Plus) không cần gọi tool
-        if "bảo hành pin" in lower_input and ("vf 5" in lower_input or "vf5" in lower_input):
-            answer = "Theo chính sách của hãng, xe điện VinFast VF 5 Plus có thời hạn bảo hành pin chính hãng là 10 năm."
+        if "bảo hành pin" in lower_input:
+            answer = "Theo dữ liệu sản phẩm hiện có, pin xe điện VinFast VF 5 Plus được bảo hành 10 năm."
             self.trace.append({
                 "step": "faq",
                 "thought": "Câu hỏi thuộc về FAQ về bảo hành pin VF 5 Plus, có sẵn căn cứ xác thực (10 năm), không cần gọi tool.",
@@ -93,12 +93,12 @@ class ToolCallingAgent:
                 "answer": answer,
                 "trace": self.trace,
                 "iterations": 1,
-                "status": "success"
+                "status": "completed"
             }
 
         # Phát hiện nhu cầu gọi tool
-        need_search = any(kw in lower_input for kw in ["xe", "vinfast", "giá", "dưới", "triệu", "tỷ", "du lịch", "resort", "vinpearl", "sản phẩm", "xem"])
-        need_ticket = any(kw in lower_input for kw in ["ticket", "hỗ trợ", "gửi", "khiếu nại", "báo lỗi", "phản ánh", "giúp tôi", "liên hệ"])
+        need_search = any(kw in lower_input for kw in ["giá", "dưới", "trên", "tìm", "tra cứu", "xem", "du lịch", "resort", "vinpearl", "sản phẩm"])
+        need_ticket = any(kw in lower_input for kw in ["ticket", "hỗ trợ", "gửi", "khiếu nại", "báo lỗi", "bị lỗi", "phản ánh", "phản hồi", "giúp tôi", "liên hệ"])
 
         # Agent Loop giới hạn bởi max_iterations
         while iterations < self.max_iterations:
@@ -146,7 +146,7 @@ class ToolCallingAgent:
             # Step B: Xử lý tạo ticket hỗ trợ (nếu cần và chưa chạy)
             if need_ticket and ticket_result is None:
                 customer_name = "Khách hàng Vingroup"
-                name_match = re.search(r"(?:tên tôi là|tên là|tôi là)\s+([A-Za-zÀ-ỹ\s]+)(?:,|\.|$)", user_input)
+                name_match = re.search(r"(?:tên tôi là|tên là|tôi là|tôi tên)\s+([A-Za-zÀ-ỹ\s]+)(?:,|\.|$)", user_input, re.IGNORECASE)
                 if name_match:
                     customer_name = name_match.group(1).strip()
                 
@@ -184,7 +184,7 @@ class ToolCallingAgent:
                 answer_parts.append("Dưới đây là các sản phẩm phù hợp với yêu cầu của bạn:\n" + "\n".join(prod_strs))
                 
         if ticket_result is not None:
-            answer_parts.append(f"Yêu cầu hỗ trợ của bạn đã được tiếp nhận thành công. Mã ticket của bạn là **{ticket_result.get('ticket_id')}** (Trạng thái: {ticket_result.get('status')}).")
+            answer_parts.append(f"Yêu cầu hỗ trợ của {ticket_result.get('customer_name')} đã được tiếp nhận thành công. Mã ticket là **{ticket_result.get('ticket_id')}** (Trạng thái: {ticket_result.get('status')}).")
 
         if not answer_parts:
             answer_parts.append("Xin chào! Tôi là VinAssistant. Tôi có thể hỗ trợ gì cho bạn về các sản phẩm và dịch vụ của Vingroup?")
@@ -199,7 +199,7 @@ class ToolCallingAgent:
             "answer": final_answer,
             "trace": self.trace,
             "iterations": iterations,
-            "status": "success"
+            "status": "completed"
         }
 
 

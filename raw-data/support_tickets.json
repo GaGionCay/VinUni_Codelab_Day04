@@ -114,5 +114,45 @@
     "priority": "high",
     "status": "open",
     "created_at": "2026-11-09T17:51:36.729353"
+  },
+  {
+    "ticket_id": "TK-20261109-002",
+    "customer_name": "Test User",
+    "issue_description": "Test issue for autograder",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-11-09T23:35:59.422335"
+  },
+  {
+    "ticket_id": "TK-20261109-003",
+    "customer_name": "Test User",
+    "issue_description": "Test issue for autograder",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-11-09T23:37:00.874600"
+  },
+  {
+    "ticket_id": "TK-20261109-004",
+    "customer_name": "Test User",
+    "issue_description": "Test issue for autograder",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-11-09T23:39:47.859568"
+  },
+  {
+    "ticket_id": "TK-20261109-005",
+    "customer_name": "Test User",
+    "issue_description": "Test issue for autograder",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-11-09T23:41:55.901613"
+  },
+  {
+    "ticket_id": "TK-20261109-006",
+    "customer_name": "Lê Minh Khoa",
+    "issue_description": "Tôi tên Lê Minh Khoa, xe VF 8 của tôi bị lỗi hệ thống ADAS. Đây là vấn đề nghiêm trọng, cần xử lý gấp.",
+    "priority": "high",
+    "status": "open",
+    "created_at": "2026-11-09T23:41:55.925358"
   }
 ]
