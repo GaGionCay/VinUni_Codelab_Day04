@@ -7,7 +7,7 @@ RAW_DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "raw-data")
 
 # ---------------------------------------------------------------------------
 # Tool #1: search_product_catalog
-# TODO: Hoàn thiện hàm này — đọc file product_catalog.json, lọc theo category và max_price.
+# Đã hoàn thiện: Đọc file product_catalog.json, lọc theo category và max_price.
 # ---------------------------------------------------------------------------
 
 def search_product_catalog(category: str, max_price: int = 999999999999) -> List[Dict[str, Any]]:
@@ -22,14 +22,26 @@ def search_product_catalog(category: str, max_price: int = 999999999999) -> List
         Danh sách sản phẩm phù hợp điều kiện.
     """
     catalog_file = os.path.join(RAW_DATA_DIR, "product_catalog.json")
-    # TODO: Kiểm tra file tồn tại, đọc JSON, lọc sản phẩm
-    # Gợi ý: Lọc theo p["category"] == category AND p["price_vnd"] <= max_price
-    return []
+    if not os.path.exists(catalog_file):
+        return []
+    
+    try:
+        with open(catalog_file, "r", encoding="utf-8") as f:
+            catalog = json.load(f)
+    except Exception:
+        return []
+    
+    results = []
+    for p in catalog:
+        if p.get("category") == category and p.get("price_vnd", 0) <= max_price:
+            results.append(p)
+            
+    return results
 
 
 # ---------------------------------------------------------------------------
 # Tool #2: submit_support_ticket
-# TODO: Hoàn thiện hàm này — tạo ticket mới và lưu vào support_tickets.json.
+# Đã hoàn thiện: Tạo ticket mới, tăng mã thứ tự, lưu vào support_tickets.json và trả về kết quả.
 # ---------------------------------------------------------------------------
 
 def submit_support_ticket(
@@ -49,19 +61,101 @@ def submit_support_ticket(
         Thông tin ticket vừa tạo bao gồm ticket_id, status.
     """
     tickets_file = os.path.join(RAW_DATA_DIR, "support_tickets.json")
-    # TODO: Load existing tickets, generate new ticket_id, append new ticket, save file
-    # Gợi ý: ticket_id = f"TK-{today}-{seq:03d}" với today = datetime.now().strftime("%Y%m%d")
-    return {"ticket_id": "TODO", "status": "TODO"}
+    
+    tickets = []
+    if os.path.exists(tickets_file):
+        try:
+            with open(tickets_file, "r", encoding="utf-8") as f:
+                tickets = json.load(f)
+        except Exception:
+            tickets = []
+            
+    today = datetime.now().strftime("%Y%m%d")
+    today_prefix = f"TK-{today}-"
+    seq = 1
+    
+    for t in tickets:
+        tid = t.get("ticket_id", "")
+        if tid.startswith(today_prefix):
+            try:
+                part = int(tid.split("-")[-1])
+                if part >= seq:
+                    seq = part + 1
+            except ValueError:
+                pass
+                
+    ticket_id = f"TK-{today}-{seq:03d}"
+    
+    new_ticket = {
+        "ticket_id": ticket_id,
+        "customer_name": customer_name,
+        "issue_description": issue_description,
+        "priority": priority,
+        "status": "open",
+        "created_at": datetime.now().isoformat()
+    }
+    
+    tickets.append(new_ticket)
+    
+    os.makedirs(os.path.dirname(tickets_file), exist_ok=True)
+    try:
+        with open(tickets_file, "w", encoding="utf-8") as f:
+            json.dump(tickets, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+        
+    return new_ticket
 
 
 # ---------------------------------------------------------------------------
 # TOOL_DEFINITIONS — JSON Schemas mô tả cho LLM
-# TODO: Định nghĩa JSON Schema cho từng tool (name, description, parameters).
+# Đã hoàn thiện: Khai báo JSON Schema đầy đủ (type, description, enum, required).
 # ---------------------------------------------------------------------------
 
 TOOL_DEFINITIONS = [
-    # TODO: Thêm schema cho "search_product_catalog"
-    # TODO: Thêm schema cho "submit_support_ticket"
+    {
+        "name": "search_product_catalog",
+        "description": "Tra cứu danh mục sản phẩm hoặc dịch vụ của Vingroup dựa theo loại danh mục và mức giá tối đa.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "description": "Loại danh mục sản phẩm/dịch vụ cần tra cứu.",
+                    "enum": ["xe_dien", "du_lich"]
+                },
+                "max_price": {
+                    "type": "integer",
+                    "description": "Mức giá tối đa (tính bằng VNĐ) cho phép."
+                }
+            },
+            "required": ["category"]
+        }
+    },
+    {
+        "name": "submit_support_ticket",
+        "description": "Tạo và ghi nhận một yêu cầu hỗ trợ mới từ khách hàng vào hệ thống ticket.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "customer_name": {
+                    "type": "string",
+                    "description": "Họ và tên của khách hàng gửi yêu cầu hỗ trợ."
+                },
+                "issue_description": {
+                    "type": "string",
+                    "description": "Mô tả chi tiết vấn đề hoặc yêu cầu cần được hỗ trợ."
+                },
+                "priority": {
+                    "type": "string",
+                    "description": "Mức độ ưu tiên của ticket hỗ trợ.",
+                    "enum": ["low", "medium", "high"],
+                    "default": "medium"
+                }
+            },
+            "required": ["customer_name", "issue_description"]
+        }
+    }
 ]
 
 
